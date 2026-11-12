@@ -32,7 +32,10 @@
         <article class="panel chart-panel">
           <div class="panel-heading">
             <h2>Pitch trace</h2>
-            <span id="practice-state" class="tag">Ready</span>
+            <div class="chart-status">
+              <button id="backing-now" class="tag secondary" type="button" hidden></button>
+              <span id="practice-state" class="tag">Ready</span>
+            </div>
           </div>
           <div class="chart-wrap">
             <canvas id="pitch-chart" role="img" aria-label="Sung notes over the last ten seconds"></canvas>
@@ -70,6 +73,40 @@
         <div><dt>From nearest note</dt><dd id="pitch-error">±-- ¢</dd></div>
         <div><dt>In range and in tune (±15¢)</dt><dd id="pitch-accuracy">—</dd></div>
       </dl>
+      <section class="panel backing-panel" aria-labelledby="backing-title">
+        <div class="panel-heading">
+          <h2 id="backing-title">Practice backing</h2>
+          <button id="toggle-backing" class="secondary">▷ Play backing</button>
+        </div>
+        <div class="backing-grid">
+          <label>Backing type
+            <select id="backing-mode"><option value="chords">Chord progression</option><option value="drone">Drone</option></select>
+          </label>
+          <label>Tonic note<select id="backing-note" aria-describedby="tonic-help"></select></label>
+          <label>Octave<select id="backing-octave"></select></label>
+          <label>Tempo (BPM)<input id="backing-bpm" type="number" min="40" max="240" step="1" inputmode="numeric" aria-describedby="bpm-help"></label>
+          <label class="wide">Progression<select id="backing-progression" aria-describedby="progression-help"></select></label>
+          <label class="wide">Harmonic rhythm<select id="backing-lengths" aria-describedby="lengths-help"></select></label>
+          <label class="wide">Playing pattern<select id="backing-pattern" aria-describedby="pattern-help"></select></label>
+          <label class="wide backing-volume">Backing volume
+            <input id="backing-volume" type="range" min="0" max="100" step="1">
+          </label>
+        </div>
+        <ul id="backing-chords" class="backing-chords" aria-label="Chords and notes"></ul>
+        <p id="backing-explanation" class="hint"></p>
+        <p id="backing-status" class="hint" role="status"></p>
+        <p class="hint">Use headphones so the microphone hears your voice clearly.</p>
+        <details class="backing-theory">
+          <summary>What do these terms mean?</summary>
+          <dl>
+            <div><dt>Tonic</dt><dd id="tonic-help">The home note of the key. Changing it transposes the whole progression.</dd></div>
+            <div><dt>Progression</dt><dd id="progression-help">The order of chords. Roman numerals show where each chord starts relative to the tonic. Uppercase means major, lowercase means minor, ♭ lowers the root, 7 adds a seventh, and ø7 means half-diminished seventh.</dd></div>
+            <div><dt>Tempo</dt><dd id="bpm-help">Beats per minute. At 80 BPM, one beat lasts 0.75 seconds.</dd></div>
+            <div><dt>Harmonic rhythm</dt><dd id="lengths-help">How long each chord lasts. With 1 · 1 · 2, chords get one beat, one beat, then two beats, repeating from the start of that pattern.</dd></div>
+            <div><dt>Playing pattern</dt><dd id="pattern-help">When the notes sound within the beat. An arpeggio plays the notes of a chord one at a time. Patterns with rests can skip a chord if its duration is short.</dd></div>
+          </dl>
+        </details>
+      </section>
     </section>
 
     <section id="melody" aria-labelledby="melody-title" hidden>

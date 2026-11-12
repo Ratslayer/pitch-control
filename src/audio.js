@@ -1,4 +1,5 @@
 let context
+const warmWaves = new WeakMap()
 export async function audioContext() {
   context ??= new AudioContext()
   if (context.state !== 'running') await context.resume()
@@ -21,17 +22,32 @@ export function microphoneError(error) {
   return error.message || 'Could not start the microphone.'
 }
 
-export function tone(ctx, hz, start, length, { volume = 0.16, type = 'triangle' } = {}) {
+export function tone(ctx, hz, start, length, {
+  volume = 0.16, type = 'warm', sustain = false, output = ctx.destination,
+} = {}) {
   const osc = ctx.createOscillator()
   const gain = ctx.createGain()
-  osc.type = type
+  if (type === 'warm') {
+    if (!warmWaves.has(ctx)) {
+      const harmonics = new Float32Array([0, 1, 0.29, 0.12, 0.045, 0.02])
+      warmWaves.set(ctx, ctx.createPeriodicWave(new Float32Array(harmonics.length), harmonics))
+    }
+    osc.setPeriodicWave(warmWaves.get(ctx))
+  } else {
+    osc.type = type
+  }
+  const attack = Math.min(0.014, length / 3)
+  const end = start + length
   osc.frequency.value = hz
   gain.gain.setValueAtTime(0.001, start)
-  gain.gain.exponentialRampToValueAtTime(volume, start + 0.012)
-  gain.gain.exponentialRampToValueAtTime(0.001, start + length)
-  osc.connect(gain).connect(ctx.destination)
+  gain.gain.exponentialRampToValueAtTime(volume, start + attack)
+  if (Number.isFinite(length)) {
+    if (sustain) gain.gain.setValueAtTime(volume, end - Math.min(0.035, length / 3))
+    gain.gain.exponentialRampToValueAtTime(0.001, end)
+  }
+  osc.connect(gain).connect(output)
   osc.start(start)
-  osc.stop(start + length)
+  if (Number.isFinite(length)) osc.stop(end)
   return osc
 }
 
