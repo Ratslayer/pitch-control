@@ -1,6 +1,7 @@
 import { audioContext, microphone, microphoneError, tone } from './audio.js'
 import {
-  clamp, formatCents, frequency, makePitchReader, MAX_PRACTICE_MIDI, MAX_PRACTICE_RANGE,
+  clamp, formatCents, frequency, IN_TUNE_CENTS, isPracticePitchInTune, makePitchReader,
+  MAX_PRACTICE_MIDI, MAX_PRACTICE_RANGE,
   MIN_PRACTICE_MIDI, nearestPracticeNote, noteName, PITCH_NAMES, practiceBounds,
 } from './music.js'
 import { $, save, state } from './state.js'
@@ -9,6 +10,8 @@ const traceSeconds = 10
 const readoutHoldSeconds = 0.18
 const canvas = $('pitch-chart')
 const context = canvas.getContext('2d')
+const chartStyle = getComputedStyle(canvas)
+const traceColors = ['--accent', '--in-tune'].map(color => chartStyle.getPropertyValue(color).trim())
 const status = $('practice-status')
 let trace = state.practice?.target === state.target ? state.practice.trace : []
 let elapsed = trace.at(-1)?.time ?? 0
@@ -101,7 +104,9 @@ function draw() {
     const cents = (midi - state.target) * 100
     const center = midi === state.target
     context.fillStyle = center ? '#baf88122' : '#baf8810b'
-    context.fillRect(left, y(cents + 15), right - left, y(cents - 15) - y(cents + 15))
+    const bandTop = y(cents + IN_TUNE_CENTS)
+    const bandBottom = y(cents - IN_TUNE_CENTS)
+    context.fillRect(left, bandTop, right - left, bandBottom - bandTop)
     line(left, y(cents), right, y(cents), center ? '#91a381' : '#333741', center)
     const enoughSpace = rowHeight >= 11
     const spacedLabel = Math.abs(midi - state.target) % Math.ceil(13 / rowHeight) === 0
@@ -125,26 +130,40 @@ function draw() {
   context.beginPath()
   context.rect(left, top, right - left, bottom - top)
   context.clip()
-  context.strokeStyle = '#baf881'
   context.lineWidth = 2
-  context.beginPath()
+  context.lineCap = 'round'
+  const paths = [new Path2D(), new Path2D()]
   let previous
   for (const point of trace) {
     if (point.cents === null || point.time < start || point.cents < bottomCents || point.cents >= topCents) {
       previous = null
       continue
     }
-    const pointX = x(point.time)
-    const pointY = y(point.cents)
-    if (previous !== null && previous !== undefined && point.time - previous < 0.18) {
-      context.lineTo(pointX, pointY)
+    const px = x(point.time)
+    const py = y(point.cents)
+    const color = Number(isPracticePitchInTune(state.target, point.cents, low, high))
+    const path = paths[color]
+    // Keep an abrupt note change from painting a continuous in-tune line across the gap.
+    if (!previous || point.time - previous.time >= 0.18 || Math.abs(point.cents - previous.cents) >= 50) {
+      path.moveTo(px, py)
+      path.lineTo(px + 0.4, py)
+    } else if (color === previous.color) {
+      path.moveTo(previous.x, previous.y)
+      path.lineTo(px, py)
     } else {
-      context.moveTo(pointX, pointY)
-      context.lineTo(pointX + 0.4, pointY)
+      const midX = (previous.x + px) / 2
+      const midY = (previous.y + py) / 2
+      paths[previous.color].moveTo(previous.x, previous.y)
+      paths[previous.color].lineTo(midX, midY)
+      path.moveTo(midX, midY)
+      path.lineTo(px, py)
     }
-    previous = point.time
+    previous = { x: px, y: py, time: point.time, cents: point.cents, color }
   }
-  context.stroke()
+  paths.forEach((path, index) => {
+    context.strokeStyle = traceColors[index]
+    context.stroke(path)
+  })
   context.restore()
   $('chart-empty').hidden = Boolean(stream) || trace.some(point => point.cents !== null)
 }
@@ -155,10 +174,7 @@ function updateStats() {
   const current = latest && elapsed - latest.time <= readoutHoldSeconds
     ? nearestPracticeNote(state.target, latest.cents)
     : null
-  const inTune = valid.filter(point => {
-    const { midi, error } = nearestPracticeNote(state.target, point.cents)
-    return midi >= low && midi <= high && Math.abs(error) <= 15
-  })
+  const inTune = valid.filter(point => isPracticePitchInTune(state.target, point.cents, low, high))
   $('detected-note').textContent = current ? noteName(current.midi) : '—'
   const pitchError = $('pitch-error')
   const formattedError = formatCents(current?.error)

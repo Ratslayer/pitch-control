@@ -9,6 +9,7 @@
   --line: #2c303a;
   --muted: #a7abb8;
   --accent: #baf881;
+  --in-tune: #75baff;
   --ink: #10170b;
   --mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Consolas, monospace;
 }
@@ -53,6 +54,7 @@ h2 { font-size: 15px; font-weight: 700; letter-spacing: -.015em; }
 .chart-footer { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; margin-top: 12px; color: var(--muted); font-size: 12px; }
 .chart-footer span:last-child { margin-left: auto; }
 .legend-line { display: inline-block; width: 15px; border-top: 2px solid var(--accent); vertical-align: middle; margin-right: 4px; }
+.in-tune-line { border-color: var(--in-tune); }
 .target-line { border-top-style: dashed; border-color: #91a381; }
 .controls-panel { padding: 21px; }
 .pitch-readout { display: flex; gap: 11px; align-items: baseline; margin: 12px 0 15px; }

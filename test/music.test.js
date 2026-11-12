@@ -1,7 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import {
-  detectNotes, encodeWav, formatCents, frequency, makePitchReader, nearestPracticeNote, practiceBounds,
+  detectNotes, encodeWav, formatCents, frequency, isPracticePitchInTune, makePitchReader, nearestPracticeNote, practiceBounds,
   quantize, SAMPLE_RATE, scoreBars,
 } from '../src/music.js'
 
@@ -30,6 +30,15 @@ test('reports pitch error relative to the note sung, including notes an octave a
   assert.deepEqual(nearestPracticeNote(57, -1188), { midi: 45, error: 12 })
   assert.deepEqual(nearestPracticeNote(57, 1185), { midi: 69, error: -15 })
   assert.deepEqual(nearestPracticeNote(57, -50), { midi: 57, error: -50 })
+})
+
+test('includes both ±15-cent edges for any note in range', () => {
+  for (const cents of [-115, -85, -15, 0, 15, 85, 115]) {
+    assert.equal(isPracticePitchInTune(57, cents, 56, 58), true)
+  }
+  for (const cents of [-116, -84, 16, 116, 200]) {
+    assert.equal(isPracticePitchInTune(57, cents, 56, 58), false)
+  }
 })
 
 test('keeps the cents readout the same width, including at zero and without pitch', () => {

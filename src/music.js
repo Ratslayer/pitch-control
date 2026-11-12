@@ -16,6 +16,7 @@ export const clamp = (value, min, max) => Math.min(max, Math.max(min, value))
 export const MIN_PRACTICE_MIDI = 24
 export const MAX_PRACTICE_MIDI = 95
 export const MAX_PRACTICE_RANGE = 24
+export const IN_TUNE_CENTS = 15
 
 export function practiceBounds(center, radius) {
   return {
@@ -27,6 +28,11 @@ export function practiceBounds(center, radius) {
 export function nearestPracticeNote(center, cents) {
   const semitones = Math.round(cents / 100)
   return { midi: center + semitones, error: cents - semitones * 100 }
+}
+
+export function isPracticePitchInTune(center, cents, low, high) {
+  const { midi, error } = nearestPracticeNote(center, cents)
+  return midi >= low && midi <= high && Math.abs(error) <= IN_TUNE_CENTS
 }
 
 export function formatCents(cents) {
