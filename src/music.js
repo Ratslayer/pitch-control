@@ -29,6 +29,12 @@ export function nearestPracticeNote(center, cents) {
   return { midi: center + semitones, error: cents - semitones * 100 }
 }
 
+export function formatCents(cents) {
+  if (cents == null) return '±-- ¢'
+  const sign = cents < 0 ? '−' : '+'
+  return sign + String(Math.abs(cents)).padStart(2, '0') + ' ¢'
+}
+
 export function makePitchReader(length, sampleRate, minHz = 60, maxHz = 1300) {
   const detector = PitchDetector.forFloat32Array(length)
   detector.minVolumeDecibels = -55

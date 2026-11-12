@@ -1,11 +1,12 @@
 import { audioContext, microphone, microphoneError, tone } from './audio.js'
 import {
-  clamp, frequency, makePitchReader, MAX_PRACTICE_MIDI, MAX_PRACTICE_RANGE,
+  clamp, formatCents, frequency, makePitchReader, MAX_PRACTICE_MIDI, MAX_PRACTICE_RANGE,
   MIN_PRACTICE_MIDI, nearestPracticeNote, noteName, PITCH_NAMES, practiceBounds,
 } from './music.js'
 import { $, save, state } from './state.js'
 
 const traceSeconds = 10
+const readoutHoldSeconds = 0.18
 const canvas = $('pitch-chart')
 const context = canvas.getContext('2d')
 const status = $('practice-status')
@@ -149,15 +150,19 @@ function draw() {
 }
 
 function updateStats() {
-  const cents = trace.at(-1)?.cents
-  const current = cents == null ? null : nearestPracticeNote(state.target, cents)
   const valid = trace.filter(point => point.cents !== null)
+  const latest = valid.at(-1)
+  const current = latest && elapsed - latest.time <= readoutHoldSeconds
+    ? nearestPracticeNote(state.target, latest.cents)
+    : null
   const inTune = valid.filter(point => {
     const { midi, error } = nearestPracticeNote(state.target, point.cents)
     return midi >= low && midi <= high && Math.abs(error) <= 15
   })
   $('detected-note').textContent = current ? noteName(current.midi) : '—'
-  $('pitch-error').textContent = current ? (current.error > 0 ? '+' : '') + current.error + ' ¢' : '—'
+  const pitchError = $('pitch-error')
+  const formattedError = formatCents(current?.error)
+  if (pitchError.textContent !== formattedError) pitchError.textContent = formattedError
   $('pitch-accuracy').textContent = valid.length ? Math.round(100 * inTune.length / valid.length) + '%' : '—'
 }
 
