@@ -78,7 +78,8 @@ function draw() {
   }
   context.setTransform(scale, 0, 0, scale, 0, 0)
   context.clearRect(0, 0, width, height)
-  const left = 42, right = width - 7, top = 12, bottom = height - 23
+  const labelGutter = 42
+  const left = labelGutter, right = width - labelGutter, top = 12, bottom = height - 23
   const bottomCents = (low - state.target) * 100 - 50
   const topCents = (high - state.target) * 100 + 50
   const y = cents => top + (topCents - cents) * (bottom - top) / (topCents - bottomCents)
@@ -89,6 +90,11 @@ function draw() {
     context.font = '10px ui-monospace, monospace'
     context.textAlign = align
     context.fillText(text, x, y)
+  }
+  const labelPitch = (text, cents, color) => {
+    const baseline = y(cents) + 3
+    label(text, left - 7, baseline, 'right', color)
+    label(text, right + 7, baseline, 'left', color)
   }
   const line = (x1, y1, x2, y2, color, dashed = false) => {
     context.strokeStyle = color
@@ -111,13 +117,13 @@ function draw() {
     const enoughSpace = rowHeight >= 11
     const spacedLabel = Math.abs(midi - state.target) % Math.ceil(13 / rowHeight) === 0
     if (enoughSpace || spacedLabel) {
-      label(noteName(midi), left - 7, y(cents) + 3, 'right', center ? '#baf881' : '#a7abb8')
+      labelPitch(noteName(midi), cents, center ? '#baf881' : undefined)
     }
   }
   if (low === high) {
     for (const cents of [-50, -25, 25, 50]) {
       line(left, y(cents), right, y(cents), '#2f333d')
-      label((cents > 0 ? '+' : '') + cents + '¢', left - 7, y(cents) + 3)
+      labelPitch((cents > 0 ? '+' : '') + cents + '¢', cents)
     }
   }
   for (let seconds = 0; seconds <= traceSeconds; seconds += 2) {
