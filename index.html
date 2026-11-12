@@ -26,7 +26,7 @@
     <section id="practice" aria-labelledby="practice-title">
       <header class="page-heading">
         <h1 id="practice-title">Pitch practice</h1>
-        <p>Hear a note, sing it back, and see how steadily you hold it.</p>
+        <p>Sing across a range of notes and see how closely you hit each pitch.</p>
       </header>
       <div class="workspace">
         <article class="panel chart-panel">
@@ -35,25 +35,30 @@
             <span id="practice-state" class="tag">Ready</span>
           </div>
           <div class="chart-wrap">
-            <canvas id="pitch-chart" role="img" aria-label="Pitch error in cents over the last ten seconds"></canvas>
+            <canvas id="pitch-chart" role="img" aria-label="Sung notes over the last ten seconds"></canvas>
             <div id="chart-empty" class="chart-empty"><span>Start listening to see your pitch</span></div>
           </div>
           <div class="chart-footer">
             <span><i class="legend-line"></i> Your voice</span>
-            <span><i class="legend-line target-line"></i> Target pitch</span>
+            <span><i class="legend-line target-line"></i> Center note</span>
             <span>Last 10 seconds</span>
           </div>
         </article>
         <aside class="panel controls-panel">
-          <h2>Target note</h2>
+          <h2>Practice range</h2>
           <div class="pitch-readout">
             <strong id="target-display">A3</strong>
             <span id="target-frequency">220.0 Hz</span>
           </div>
           <div class="control-row">
-            <label>Note<select id="target-note"></select></label>
+            <label>Center note<select id="target-note"></select></label>
             <label>Octave<select id="target-octave"></select></label>
           </div>
+          <label class="practice-range-input">Range (± semitones)
+            <input id="practice-range" type="number" min="0" max="24" step="1" value="12" inputmode="numeric" aria-describedby="range-endpoints">
+          </label>
+          <p id="range-endpoints" class="hint"></p>
+          <label class="reference-select">Reference note<select id="reference-note"></select></label>
           <button id="play-target" class="secondary full"><span aria-hidden="true">▷</span> Play reference</button>
           <button id="practice-mic" class="primary full"><span class="record-dot" aria-hidden="true"></span><span>Start listening</span></button>
           <p id="practice-status" class="hint" role="status">Allow microphone access to begin.</p>
@@ -61,8 +66,8 @@
       </div>
       <dl class="practice-stats panel">
         <div><dt>Detected note</dt><dd id="detected-note">—</dd></div>
-        <div><dt>Pitch error</dt><dd id="pitch-error">—</dd></div>
-        <div><dt>Within ±15 cents</dt><dd id="pitch-accuracy">—</dd></div>
+        <div><dt>From nearest note</dt><dd id="pitch-error">—</dd></div>
+        <div><dt>In range and in tune (±15¢)</dt><dd id="pitch-accuracy">—</dd></div>
       </dl>
     </section>
 

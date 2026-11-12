@@ -13,12 +13,28 @@ export const midiPitch = hz => 69 + 12 * Math.log2(hz / 440)
 export const noteName = midi => PITCH_NAMES[midi % 12] + (Math.floor(midi / 12) - 1)
 export const clamp = (value, min, max) => Math.min(max, Math.max(min, value))
 
-export function makePitchReader(length, sampleRate) {
+export const MIN_PRACTICE_MIDI = 24
+export const MAX_PRACTICE_MIDI = 95
+export const MAX_PRACTICE_RANGE = 24
+
+export function practiceBounds(center, radius) {
+  return {
+    low: Math.max(MIN_PRACTICE_MIDI, center - radius),
+    high: Math.min(MAX_PRACTICE_MIDI, center + radius),
+  }
+}
+
+export function nearestPracticeNote(center, cents) {
+  const semitones = Math.round(cents / 100)
+  return { midi: center + semitones, error: cents - semitones * 100 }
+}
+
+export function makePitchReader(length, sampleRate, minHz = 60, maxHz = 1300) {
   const detector = PitchDetector.forFloat32Array(length)
   detector.minVolumeDecibels = -55
   return samples => {
     const [hz, clarity] = detector.findPitch(samples, sampleRate)
-    return clarity >= 0.86 && hz >= 60 && hz <= 1300 ? midiPitch(hz) : null
+    return clarity >= 0.86 && hz >= minHz && hz <= maxHz ? midiPitch(hz) : null
   }
 }
 

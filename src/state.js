@@ -1,7 +1,7 @@
 export const $ = id => document.getElementById(id)
 const key = 'pitch-control-v1'
 const defaults = {
-  mode: 'practice', target: 57, tempo: 90, grid: 2, metronome: false,
+  mode: 'practice', target: 57, practiceRange: 12, referenceNote: null, tempo: 90, grid: 2, metronome: false,
   practice: null, takes: [], selected: null,
 }
 

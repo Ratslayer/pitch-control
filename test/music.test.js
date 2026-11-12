@@ -1,7 +1,8 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import {
-  detectNotes, encodeWav, frequency, makePitchReader, quantize, SAMPLE_RATE, scoreBars,
+  detectNotes, encodeWav, frequency, makePitchReader, nearestPracticeNote, practiceBounds,
+  quantize, SAMPLE_RATE, scoreBars,
 } from '../src/music.js'
 
 function phrase(parts) {
@@ -15,6 +16,28 @@ test('tracks fractional pitch for practice and ignores silence', () => {
   assert.equal(readPitch(new Float32Array(1024)), null)
   const sung = readPitch(phrase([[57.23, 1024 / SAMPLE_RATE]]))
   assert.ok(Math.abs(sung - 57.23) < 0.03)
+})
+
+test('covers the octave above and below each center, with supported pitch limits', () => {
+  assert.deepEqual(practiceBounds(57, 12), { low: 45, high: 69 })
+  assert.deepEqual(practiceBounds(36, 12), { low: 24, high: 48 })
+  assert.deepEqual(practiceBounds(83, 12), { low: 71, high: 95 })
+  assert.deepEqual(practiceBounds(57, 0), { low: 57, high: 57 })
+  assert.deepEqual(practiceBounds(83, 24), { low: 59, high: 95 })
+})
+
+test('reports pitch error relative to the note sung, including notes an octave away', () => {
+  assert.deepEqual(nearestPracticeNote(57, -1188), { midi: 45, error: 12 })
+  assert.deepEqual(nearestPracticeNote(57, 1185), { midi: 69, error: -15 })
+  assert.deepEqual(nearestPracticeNote(57, -50), { midi: 57, error: -50 })
+})
+
+test('the practice detector can read the low and high limits', () => {
+  const size = 2048
+  const reader = makePitchReader(size, SAMPLE_RATE, frequency(23.5), frequency(95.5))
+  for (const midi of [24, 95]) {
+    assert.ok(Math.abs(reader(phrase([[midi, size / SAMPLE_RATE]])) - midi) < 0.1)
+  }
 })
 
 test('transcribes a melody with a rest and a repeated note', () => {
