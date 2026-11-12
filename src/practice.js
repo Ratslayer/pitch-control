@@ -96,28 +96,37 @@ function draw() {
     label(text, left - 7, baseline, 'right', color)
     label(text, right + 7, baseline, 'left', color)
   }
-  const line = (x1, y1, x2, y2, color, dashed = false) => {
+  const line = (x1, y1, x2, y2, color, dashed = false, width = 1) => {
     context.strokeStyle = color
-    context.lineWidth = 1
+    context.lineWidth = width
     context.setLineDash(dashed ? [4, 4] : [])
     context.beginPath()
     context.moveTo(x1, y1)
     context.lineTo(x2, y2)
     context.stroke()
   }
+  const latestCents = trace.at(-1)?.cents
+  const activeNote = stream && latestCents != null && isPracticePitchInTune(state.target, latestCents, low, high)
+    ? nearestPracticeNote(state.target, latestCents).midi
+    : null
+  const inTuneColor = traceColors[1]
   const rowHeight = (bottom - top) / (high - low + 1)
   for (let midi = low; midi <= high; midi++) {
     const cents = (midi - state.target) * 100
     const center = midi === state.target
+    const active = midi === activeNote
     context.fillStyle = center ? '#baf88122' : '#baf8810b'
     const bandTop = y(cents + IN_TUNE_CENTS)
     const bandBottom = y(cents - IN_TUNE_CENTS)
     context.fillRect(left, bandTop, right - left, bandBottom - bandTop)
-    line(left, y(cents), right, y(cents), center ? '#91a381' : '#333741', center)
+    const gridColor = center ? '#91a381' : '#333741'
+    line(left, y(cents), right, y(cents), active ? inTuneColor : gridColor, center && !active, active ? 2 : 1)
     const enoughSpace = rowHeight >= 11
     const spacedLabel = Math.abs(midi - state.target) % Math.ceil(13 / rowHeight) === 0
-    if (enoughSpace || spacedLabel) {
-      labelPitch(noteName(midi), cents, center ? '#baf881' : undefined)
+    const clearOfActiveLabel = activeNote === null || Math.abs(midi - activeNote) * rowHeight >= 11
+    if (active || ((enoughSpace || spacedLabel) && clearOfActiveLabel)) {
+      const labelColor = center ? traceColors[0] : undefined
+      labelPitch(noteName(midi), cents, active ? inTuneColor : labelColor)
     }
   }
   if (low === high) {
@@ -262,7 +271,7 @@ async function startPractice() {
     started = performance.now()
     previousFrame = started
     updateStats()
-    updateControls('Listening', 'Sing any note in range and follow the green trace.')
+    updateControls('Listening', 'Sing any note in range and follow your pitch trace.')
     frame = requestAnimationFrame(tick)
   } catch (error) {
     acquired?.getTracks().forEach(track => track.stop())
