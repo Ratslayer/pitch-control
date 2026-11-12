@@ -1,0 +1,26 @@
+{
+  "name": "pitch-control",
+  "version": "0.1.0",
+  "description": "Browser-only singing pitch practice and melody transcription",
+  "scripts": {
+    "test": "node --test",
+    "dev": "vite --host 0.0.0.0",
+    "build": "vite build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Ratslayer/pitch-control.git"
+  },
+  "type": "module",
+  "bugs": {
+    "url": "https://github.com/Ratslayer/pitch-control/issues"
+  },
+  "homepage": "https://github.com/Ratslayer/pitch-control#readme",
+  "dependencies": {
+    "pitchy": "^4.1.0",
+    "vexflow": "^5.0.0"
+  },
+  "devDependencies": {
+    "vite": "^8.3.8"
+  }
+}

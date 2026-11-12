@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101115">
+  <meta name="description" content="Practice singing in tune and turn a hummed melody into sheet music.">
+  <title>Pitch Control</title>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>
+        <span>Pitch Control</span>
+      </div>
+      <nav class="mode-switch" aria-label="Mode">
+        <button id="practice-tab" aria-controls="practice" aria-pressed="true">Pitch practice</button>
+        <button id="melody-tab" aria-controls="melody" aria-pressed="false">Melody to score</button>
+      </nav>
+      <span class="local-label"><i aria-hidden="true"></i> Stored on this device</span>
+    </div>
+  </header>
+  <main>
+    <p id="storage-status" class="notice" role="status" hidden></p>
+    <section id="practice" aria-labelledby="practice-title">
+      <header class="page-heading">
+        <h1 id="practice-title">Pitch practice</h1>
+        <p>Hear a note, sing it back, and see how steadily you hold it.</p>
+      </header>
+      <div class="workspace">
+        <article class="panel chart-panel">
+          <div class="panel-heading">
+            <h2>Pitch trace</h2>
+            <span id="practice-state" class="tag">Ready</span>
+          </div>
+          <div class="chart-wrap">
+            <canvas id="pitch-chart" role="img" aria-label="Pitch error in cents over the last ten seconds"></canvas>
+            <div id="chart-empty" class="chart-empty"><span>Start listening to see your pitch</span></div>
+          </div>
+          <div class="chart-footer">
+            <span><i class="legend-line"></i> Your voice</span>
+            <span><i class="legend-line target-line"></i> Target pitch</span>
+            <span>Last 10 seconds</span>
+          </div>
+        </article>
+        <aside class="panel controls-panel">
+          <h2>Target note</h2>
+          <div class="pitch-readout">
+            <strong id="target-display">A3</strong>
+            <span id="target-frequency">220.0 Hz</span>
+          </div>
+          <div class="control-row">
+            <label>Note<select id="target-note"></select></label>
+            <label>Octave<select id="target-octave"></select></label>
+          </div>
+          <button id="play-target" class="secondary full"><span aria-hidden="true">▷</span> Play reference</button>
+          <button id="practice-mic" class="primary full"><span class="record-dot" aria-hidden="true"></span><span>Start listening</span></button>
+          <p id="practice-status" class="hint" role="status">Allow microphone access to begin.</p>
+        </aside>
+      </div>
+      <dl class="practice-stats panel">
+        <div><dt>Detected note</dt><dd id="detected-note">—</dd></div>
+        <div><dt>Pitch error</dt><dd id="pitch-error">—</dd></div>
+        <div><dt>Within ±15 cents</dt><dd id="pitch-accuracy">—</dd></div>
+      </dl>
+    </section>
+
+    <section id="melody" aria-labelledby="melody-title" hidden>
+      <header class="page-heading">
+        <h1 id="melody-title">Melody to score</h1>
+        <p>Hum a phrase to turn it into editable notes on a staff.</p>
+      </header>
+      <div class="workspace">
+        <article class="panel score-panel">
+          <div class="panel-heading">
+            <h2 id="score-title">Sheet music</h2>
+            <span id="score-meta" class="tag">4/4 time</span>
+          </div>
+          <div id="score-empty" class="score-empty">
+            <div class="staff-preview" aria-hidden="true"><span>♪</span></div>
+            <p>Record or import a melody to see its notes.</p>
+          </div>
+          <div id="score-content" hidden>
+            <div id="score" class="score" role="img" aria-label="Transcribed sheet music"></div>
+            <div class="playback-row">
+              <button id="play-score" class="secondary">▷ Play score</button>
+              <audio id="original-audio" controls preload="metadata" aria-label="Play original recording"></audio>
+            </div>
+            <div class="score-settings">
+              <label>Score tempo<input type="number" id="score-tempo" min="40" max="240"></label>
+              <label>Smallest note<select id="score-grid"><option value="2">Eighth</option><option value="1">Sixteenth</option></select></label>
+              <button id="requantize" class="secondary">Rebuild score</button>
+            </div>
+            <p class="hint">Rebuilding reapplies the rhythm grid and replaces manual edits.</p>
+            <details id="note-details">
+              <summary>Edit notes <span id="note-count"></span></summary>
+              <div class="table-wrap">
+                <table><thead><tr><th scope="col">#</th><th scope="col">Pitch</th><th scope="col">Start (beats)</th><th scope="col">Length (beats)</th><th scope="col"><span class="sr-only">Actions</span></th></tr></thead><tbody id="note-editor"></tbody></table>
+              </div>
+            </details>
+          </div>
+        </article>
+        <aside class="panel controls-panel">
+          <h2>New melody</h2>
+          <div class="control-row melody-controls">
+            <label>Tempo (BPM)<input id="tempo" type="number" min="40" max="240" value="90"></label>
+            <label>Smallest note<select id="grid"><option value="2">Eighth</option><option value="1">Sixteenth</option></select></label>
+          </div>
+          <label class="check-row"><input id="metronome" type="checkbox"> Metronome while recording</label>
+          <button id="record-melody" class="primary full"><span class="record-dot" aria-hidden="true"></span><span>Record melody</span></button>
+          <button id="import-audio" class="secondary full">Import audio</button>
+          <input id="audio-file" type="file" accept="audio/*,.m4a,.ogg,.wav,.mp3,.webm" hidden>
+          <p id="melody-status" class="hint" role="status">Up to 20 seconds per take. Use headphones with the metronome.</p>
+        </aside>
+      </div>
+      <section class="panel saved-panel" aria-labelledby="saved-title">
+        <div class="panel-heading"><h2 id="saved-title">Saved melodies</h2><span id="saved-count" class="tag">0 takes</span></div>
+        <p id="saved-empty" class="hint">New takes are saved here automatically.</p>
+        <ul id="saved-melodies" class="saved-list"></ul>
+      </section>
+    </section>
+  </main>
+  <script type="module" src="/src/app.js"></script>
+</body>
+</html>
